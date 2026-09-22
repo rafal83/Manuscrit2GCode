@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manuscrit2GCode — Écriture manuscrite pour plotter</title>
+<link rel="stylesheet" href="css/reset.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<div class="hw-app">
+
+  <header class="hw-topbar">
+    <h1>Manuscrit2GCode</h1>
+    <p class="hw-subtitle">Texte → écriture manuscrite → G-code, 100&nbsp;% local</p>
+  </header>
+
+  <aside class="hw-sidebar" id="sidebar">
+
+    <section class="hw-panel" open>
+      <h2>Texte</h2>
+      <label class="hw-field">
+        <span>Contenu</span>
+        <textarea id="input-text" rows="7" spellcheck="false"></textarea>
+      </label>
+
+      <div class="hw-row">
+        <label class="hw-field hw-field--grow">
+          <span>Seed</span>
+          <input type="number" id="input-seed" min="0" step="1">
+        </label>
+        <button type="button" class="hw-btn" id="btn-new-variation">🎲 Nouvelle variation</button>
+      </div>
+
+      <div class="hw-row">
+        <label class="hw-field hw-field--grow">
+          <span>Police</span>
+          <select id="input-font"></select>
+        </label>
+        <label class="hw-field hw-field--grow">
+          <span>Style</span>
+          <select id="input-style">
+            <option value="cursive">Cursive / semi-liée</option>
+            <option value="print">Script (print)</option>
+          </select>
+        </label>
+      </div>
+    </section>
+
+    <section class="hw-panel">
+      <h2>Papier &amp; mise en page</h2>
+
+      <div class="hw-row">
+        <label class="hw-field hw-field--grow">
+          <span>Format</span>
+          <select id="input-paper-format">
+            <option value="A4">A4 (210 × 297 mm)</option>
+            <option value="A5">A5 (148 × 210 mm)</option>
+            <option value="Letter">Letter (215,9 × 279,4 mm)</option>
+            <option value="Custom">Personnalisé</option>
+          </select>
+        </label>
+      </div>
+      <div class="hw-row">
+        <label class="hw-field">
+          <span>Largeur (mm)</span>
+          <input type="number" id="input-paper-width" min="10" max="1000" step="1">
+        </label>
+        <label class="hw-field">
+          <span>Hauteur (mm)</span>
+          <input type="number" id="input-paper-height" min="10" max="1000" step="1">
+        </label>
+      </div>
+
+      <div class="hw-row hw-row--4">
+        <label class="hw-field"><span>Marge haut</span><input type="number" id="input-margin-top" min="0" step="0.5"></label>
+        <label class="hw-field"><span>Marge droite</span><input type="number" id="input-margin-right" min="0" step="0.5"></label>
+        <label class="hw-field"><span>Marge bas</span><input type="number" id="input-margin-bottom" min="0" step="0.5"></label>
+        <label class="hw-field"><span>Marge gauche</span><input type="number" id="input-margin-left" min="0" step="0.5"></label>
+      </div>
+
+      <div class="hw-row">
+        <label class="hw-field">
+          <span>Taille d'écriture (mm)</span>
+          <input type="range" id="input-font-size" min="2.5" max="10" step="0.1">
+          <output id="out-font-size"></output>
+        </label>
+        <label class="hw-field">
+          <span>Interligne (mm)</span>
+          <input type="range" id="input-line-height" min="5" max="20" step="0.25">
+          <output id="out-line-height"></output>
+        </label>
+      </div>
+      <div class="hw-row">
+        <label class="hw-field">
+          <span>Espacement lettres (mm)</span>
+          <input type="range" id="input-letter-spacing" min="-0.5" max="2.5" step="0.05">
+          <output id="out-letter-spacing"></output>
+        </label>
+        <label class="hw-field">
+          <span>Espacement mots (mm)</span>
+          <input type="range" id="input-word-spacing" min="1" max="8" step="0.1">
+          <output id="out-word-spacing"></output>
+        </label>
+      </div>
+    </section>
+
+    <section class="hw-panel">
+      <h2>Humanisation</h2>
+
+      <div class="hw-preset-group" id="humanization-level-group">
+        <button type="button" class="hw-preset-btn" data-level="regulier">Régulier</button>
+        <button type="button" class="hw-preset-btn" data-level="naturel">Naturel</button>
+        <button type="button" class="hw-preset-btn" data-level="manuscrit">Manuscrit</button>
+        <button type="button" class="hw-preset-btn" data-level="tresHumain">Très humain</button>
+      </div>
+
+      <label class="hw-field">
+        <span>Personnalité</span>
+        <select id="input-personality">
+          <option value="soignee">Soignée</option>
+          <option value="naturelle">Naturelle</option>
+          <option value="rapide">Rapide</option>
+          <option value="irreguliere">Irrégulière</option>
+        </select>
+      </label>
+
+      <details class="hw-advanced">
+        <summary>Réglages avancés</summary>
+
+        <div id="humanization-sliders">
+          <label class="hw-field hw-slider" data-key="glyphVariation"><span>Variation des glyphes</span><input type="range" min="0" max="1" step="0.01"><output></output></label>
+          <label class="hw-field hw-slider" data-key="sizeVariation"><span>Variation de taille</span><input type="range" min="0" max="1" step="0.01"><output></output></label>
+          <label class="hw-field hw-slider" data-key="rotationVariation"><span>Variation d'inclinaison (lettre)</span><input type="range" min="0" max="1" step="0.01"><output></output></label>
+          <label class="hw-field hw-slider" data-key="baselineDrift"><span>Dérive de ligne de base</span><input type="range" min="0" max="1" step="0.01"><output></output></label>
+          <label class="hw-field hw-slider" data-key="slantDrift"><span>Dérive d'inclinaison (globale)</span><input type="range" min="0" max="1" step="0.01"><output></output></label>
+          <label class="hw-field hw-slider" data-key="letterSpacingVariation"><span>Variation espacement lettres</span><input type="range" min="0" max="1" step="0.01"><output></output></label>
+          <label class="hw-field hw-slider" data-key="wordSpacingVariation"><span>Variation espacement mots</span><input type="range" min="0" max="1" step="0.01"><output></output></label>
+          <label class="hw-field hw-slider" data-key="strokeJitterAmplitude"><span>Micro-imperfections (jitter)</span><input type="range" min="0" max="0.18" step="0.005"><output></output></label>
+          <label class="hw-field hw-slider" data-key="speedVariation"><span>Variation de vitesse (mot/lettre)</span><input type="range" min="0" max="1" step="0.01"><output></output></label>
+          <label class="hw-field hw-slider" data-key="wordStartVariation"><span>Attaque de mot</span><input type="range" min="0" max="1" step="0.01"><output></output></label>
+          <label class="hw-field hw-slider" data-key="wordEndLift"><span>Levée en fin de mot</span><input type="range" min="0" max="1" step="0.01"><output></output></label>
+          <label class="hw-field hw-slider" data-key="pressureVariation"><span>Variation de pression</span><input type="range" min="0" max="1" step="0.01"><output></output></label>
+          <label class="hw-field hw-slider" data-key="connectionProbability"><span>Probabilité de liaison (cursive)</span><input type="range" min="0" max="1" step="0.01"><output></output></label>
+        </div>
+      </details>
+    </section>
+
+    <section class="hw-panel">
+      <h2>Machine &amp; stylo</h2>
+
+      <p class="hw-warning">
+        ⚠ Ne jamais lancer un homing Z (G28 Z) si le porte-stylo dépasse sous la buse : risque de collision.
+      </p>
+
+      <div class="hw-row">
+        <label class="hw-field hw-field--grow">
+          <span>Profil machine</span>
+          <input type="text" id="input-machine-name">
+        </label>
+      </div>
+      <div class="hw-row hw-row--4">
+        <label class="hw-field"><span>Plateau largeur (mm)</span><input type="number" id="input-bed-width" min="10" step="1"></label>
+        <label class="hw-field"><span>Plateau hauteur (mm)</span><input type="number" id="input-bed-height" min="10" step="1"></label>
+        <label class="hw-field"><span>X max utile (mm)</span><input type="number" id="input-max-x" min="10" step="1"></label>
+        <label class="hw-field"><span>Y max utile (mm)</span><input type="number" id="input-max-y" min="10" step="1"></label>
+      </div>
+
+      <div class="hw-row hw-row--4">
+        <label class="hw-field"><span>Z stylo levé</span><input type="number" id="input-pen-up-z" min="0" step="0.1"></label>
+        <label class="hw-field"><span>Z stylo posé</span><input type="number" id="input-pen-down-z" min="0" step="0.05"></label>
+        <label class="hw-field"><span>Z minimum (sécurité)</span><input type="number" id="input-min-pen-z" min="0" step="0.05"></label>
+        <label class="hw-field hw-checkbox"><span>Variation de pression Z</span><input type="checkbox" id="input-pressure-enabled"></label>
+      </div>
+
+      <div class="hw-row hw-row--4">
+        <label class="hw-field"><span>Vitesse trait (mm/min)</span><input type="number" id="input-base-speed" min="100" step="50"></label>
+        <label class="hw-field"><span>Vitesse déplacement (mm/min)</span><input type="number" id="input-travel-speed" min="100" step="50"></label>
+        <label class="hw-field"><span>Vitesse Z (mm/min)</span><input type="number" id="input-z-speed" min="50" step="50"></label>
+        <label class="hw-field"><span>Ralentissement virages</span><input type="range" id="input-corner-slowdown" min="0" max="1" step="0.05"></label>
+      </div>
+
+      <div class="hw-row hw-row--4">
+        <label class="hw-field"><span>Feuille X (mm)</span><input type="number" id="input-sheet-x" step="0.5"></label>
+        <label class="hw-field"><span>Feuille Y (mm)</span><input type="number" id="input-sheet-y" step="0.5"></label>
+        <label class="hw-field"><span>Rotation feuille (°)</span><input type="number" id="input-sheet-rotation" step="0.1"></label>
+        <label class="hw-field"><span>Décimales G-code</span><input type="number" id="input-decimal-places" min="1" max="5" step="1"></label>
+      </div>
+
+      <details class="hw-advanced">
+        <summary>G-code de début / fin (avancé)</summary>
+        <label class="hw-field">
+          <span>Start G-code</span>
+          <textarea id="input-start-gcode" rows="3" spellcheck="false"></textarea>
+        </label>
+        <label class="hw-field">
+          <span>End G-code</span>
+          <textarea id="input-end-gcode" rows="2" spellcheck="false"></textarea>
+        </label>
+      </details>
+
+      <button type="button" class="hw-btn hw-btn--ghost" id="btn-reset-settings">Réinitialiser les paramètres</button>
+    </section>
+
+  </aside>
+
+  <main class="hw-main">
+
+    <div class="hw-toolbar">
+      <div class="hw-toolbar-group">
+        <button type="button" class="hw-btn hw-btn--primary" id="btn-generate">Générer</button>
+        <button type="button" class="hw-btn" id="btn-new-variation-2">Nouvelle variation</button>
+      </div>
+
+      <div class="hw-toolbar-group">
+        <select id="input-view-mode">
+          <option value="result">Résultat</option>
+          <option value="trajectories">Trajectoires</option>
+          <option value="movements">Mouvements</option>
+          <option value="debug">Debug</option>
+        </select>
+        <button type="button" class="hw-btn hw-btn--icon" id="btn-zoom-out" title="Zoom arrière">−</button>
+        <button type="button" class="hw-btn hw-btn--icon" id="btn-zoom-in" title="Zoom avant">+</button>
+        <button type="button" class="hw-btn" id="btn-fit-page">Ajuster feuille</button>
+        <button type="button" class="hw-btn" id="btn-fit-machine">Ajuster machine</button>
+      </div>
+
+      <div class="hw-toolbar-group">
+        <button type="button" class="hw-btn" id="btn-export-svg">Exporter SVG</button>
+        <button type="button" class="hw-btn hw-btn--primary" id="btn-download-gcode">Télécharger G-code</button>
+      </div>
+    </div>
+
+    <div class="hw-preview-wrap">
+      <div class="hw-preview-viewport" id="preview-viewport">
+        <svg id="preview-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
+
+      <div class="hw-sim-bar">
+        <button type="button" class="hw-btn hw-btn--icon" id="btn-sim-play" title="Lecture">▶</button>
+        <button type="button" class="hw-btn hw-btn--icon" id="btn-sim-pause" title="Pause">⏸</button>
+        <button type="button" class="hw-btn hw-btn--icon" id="btn-sim-stop" title="Stop">⏹</button>
+        <div class="hw-sim-speeds" id="sim-speed-group">
+          <button type="button" class="hw-sim-speed-btn" data-speed="1">x1</button>
+          <button type="button" class="hw-sim-speed-btn" data-speed="5">x5</button>
+          <button type="button" class="hw-sim-speed-btn" data-speed="10">x10</button>
+          <button type="button" class="hw-sim-speed-btn" data-speed="20">x20</button>
+        </div>
+        <div class="hw-sim-progress">
+          <div class="hw-sim-progress-bar" id="sim-progress-bar"></div>
+        </div>
+        <div class="hw-sim-readout" id="sim-readout">X: — Y: — Z: — F: — <span id="sim-pen-state">PEN UP</span></div>
+      </div>
+    </div>
+
+    <div class="hw-warnings" id="validation-warnings" hidden></div>
+
+    <div class="hw-stats" id="stats-panel"></div>
+
+    <details class="hw-panel hw-gcode-panel">
+      <summary>G-code généré</summary>
+      <textarea id="output-gcode" rows="10" readonly spellcheck="false"></textarea>
+    </details>
+
+  </main>
+</div>
+
+<script src="js/core/seeded-random.js"></script>
+<script src="js/core/noise.js"></script>
+<script src="js/core/geometry.js"></script>
+<script src="js/core/bezier.js"></script>
+<script src="js/fonts/font-authoring-kit.js"></script>
+<script src="fonts/handwriting-default/font.js"></script>
+<script src="js/fonts/font-engine.js"></script>
+<script src="js/fonts/glyph-selector.js"></script>
+<script src="js/handwriting/text-layout-engine.js"></script>
+<script src="js/handwriting/humanizer.js"></script>
+<script src="js/handwriting/stroke-processor.js"></script>
+<script src="js/handwriting/path-optimizer.js"></script>
+<script src="js/plotter/machine-profile.js"></script>
+<script src="js/plotter/operations.js"></script>
+<script src="js/plotter/gcode-generator.js"></script>
+<script src="js/preview/renderer.js"></script>
+<script src="js/preview/simulator.js"></script>
+<script src="js/ui/presets.js"></script>
+<script src="js/ui/storage.js"></script>
+<script src="js/ui/controls.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

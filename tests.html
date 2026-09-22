@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Manuscrit2GCode — Tests</title>
+<style>
+    body { font-family: ui-monospace, Consolas, monospace; background: #14161c; color: #d7dae2; padding: 24px; font-size: 13px; }
+    h1 { color: #fff; font-size: 18px; margin-bottom: 4px; }
+    p.hint { color: #8b90a0; margin-bottom: 20px; }
+    .summary { font-size: 16px; font-weight: 700; padding: 10px 14px; border-radius: 6px; margin-bottom: 14px; display: inline-block; }
+    .summary.all-pass { background: #123a24; color: #6fe39a; }
+    .summary.has-fail { background: #3a1414; color: #f08080; }
+    ul { list-style: none; padding: 0; }
+    li { padding: 4px 8px; border-radius: 4px; margin-bottom: 2px; }
+    li.pass { color: #a9e6c0; }
+    li.fail { color: #ffb3b3; background: #2a1414; }
+</style>
+</head>
+<body>
+
+<h1>Manuscrit2GCode — Suite de tests</h1>
+<p class="hint">Runner maison, sans dépendance. Ouvrez ce fichier directement dans un navigateur (file://).</p>
+
+<div id="test-results">Exécution…</div>
+
+<script src="js/core/seeded-random.js"></script>
+<script src="js/core/noise.js"></script>
+<script src="js/core/geometry.js"></script>
+<script src="js/core/bezier.js"></script>
+<script src="js/fonts/font-authoring-kit.js"></script>
+<script src="fonts/handwriting-default/font.js"></script>
+<script src="js/fonts/font-engine.js"></script>
+<script src="js/fonts/glyph-selector.js"></script>
+<script src="js/handwriting/text-layout-engine.js"></script>
+<script src="js/handwriting/humanizer.js"></script>
+<script src="js/handwriting/stroke-processor.js"></script>
+<script src="js/handwriting/path-optimizer.js"></script>
+<script src="js/plotter/machine-profile.js"></script>
+<script src="js/plotter/operations.js"></script>
+<script src="js/plotter/gcode-generator.js"></script>
+<script src="js/preview/renderer.js"></script>
+<script src="js/preview/simulator.js"></script>
+<script src="js/ui/presets.js"></script>
+<script src="js/ui/storage.js"></script>
+
+<script src="js/tests/test-runner.js"></script>
+<script src="js/tests/tests.js"></script>
+<script>
+    Handwriter.TestRunner.run();
+</script>
+</body>
+</html>
