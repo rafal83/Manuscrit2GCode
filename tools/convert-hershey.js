@@ -294,20 +294,61 @@ function buildVariant(id, advance, subpaths, opts) {
     return { id, advance: round2(advance), strokes, anchorIn, anchorOut };
 }
 
+/**
+ * Hershey digitized some letters (n, u, m, y, h, k, v, x, B, D, F, H, M,
+ * N, P, R, U...) as several separate pen-lifted subpaths even where
+ * there's no real reason to lift - e.g. lowercase 'n' is drawn as two
+ * strokes with a ~17.6-unit gap between the first hump's end and the
+ * second hump's start, purely an artifact of how it was traced originally.
+ * A pen that lifts mid-letter reads as mechanical, not handwritten, so
+ * gaps below a threshold get bridged into one continuous stroke instead.
+ *
+ * Measured directly on the generated font, the gaps form two clearly
+ * separated clusters, but at DIFFERENT scales for lowercase (xHeight=50)
+ * vs uppercase/digits (capHeight=116.55, ~2.3x taller): lowercase splits
+ * to merge sit at 0-23 units (genuine separations start at 52+), while
+ * uppercase splits to merge sit at 37-47 units (genuine separations - X's
+ * crossing strokes, W's zigzag legs - start at 77+). A single threshold
+ * can't cover both without either leaving H/N/M/U mid-letter lifts in
+ * place or wrongly fusing lowercase i's dot onto its stem.
+ */
+const CLOSE_GAP_THRESHOLD = 30; // lowercase, accented
+const CLOSE_GAP_THRESHOLD_TALL = 60; // uppercase (digits left alone - their gaps didn't show a clean cluster split)
+
+function mergeCloseSubpaths(subpaths, threshold) {
+    if (subpaths.length < 2) return subpaths;
+    const merged = [subpaths[0].slice()];
+    for (let i = 1; i < subpaths.length; i++) {
+        const prev = merged[merged.length - 1];
+        const cur = subpaths[i];
+        const prevEnd = segEndPoint(prev[prev.length - 1]);
+        const curStart = segEndPoint(cur[0]);
+        const gap = Math.hypot(prevEnd.x - curStart.x, prevEnd.y - curStart.y);
+        if (gap <= threshold) {
+            if (gap > 0.01) prev.push({ type: 'L', x: curStart.x, y: curStart.y });
+            for (let k = 1; k < cur.length; k++) prev.push(cur[k]);
+        } else {
+            merged.push(cur.slice());
+        }
+    }
+    return merged;
+}
+
 // -----------------------------------------------------------------------
 
 const script1 = parseHersheyFont(path.join(SRC_DIR, 'HersheyScript1.svg'));
 
-function scaled(font, ch) {
+function scaled(font, ch, mergeThreshold) {
     const g = font[ch];
     if (!g) return null;
     // Defensive safety net, not expected to trigger on Script1 (see note
     // above addChar) - cheap insurance in case a future source font does
     // use the shading trick.
     const cleaned = dedupeShadeStrokes(g.subpaths);
+    const scaledSubpaths = cleaned.map(sp => sp.map(scaleSegment));
     return {
         advance: g.advance * SCALE,
-        subpaths: cleaned.map(sp => sp.map(scaleSegment))
+        subpaths: mergeCloseSubpaths(scaledSubpaths, mergeThreshold !== undefined ? mergeThreshold : CLOSE_GAP_THRESHOLD)
     };
 }
 
@@ -349,7 +390,8 @@ const DERIVE_RECIPES = [
 // every variant beyond the first is derived procedurally from Script1's
 // clean geometry.
 function addChar(ch, forceNoAnchors) {
-    const s1 = scaled(script1, ch);
+    const mergeThreshold = /^[A-Z]$/.test(ch) ? CLOSE_GAP_THRESHOLD_TALL : CLOSE_GAP_THRESHOLD;
+    const s1 = scaled(script1, ch, mergeThreshold);
     if (!s1) {
         console.warn('MISSING in Hershey Script1:', JSON.stringify(ch));
         return;
