@@ -330,6 +330,13 @@ html, body {
     height: 100%;
     max-height: 78vh;
     background: transparent;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+}
+
+#preview-svg.hw-panning {
+    cursor: grabbing;
 }
 
 .hw-bed { fill: #dfe2e8; stroke: #b9bec9; stroke-width: 0.6; }

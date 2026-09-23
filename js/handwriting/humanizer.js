@@ -110,14 +110,21 @@ window.Handwriter = window.Handwriter || {};
                     glyph.isWordStart = (gi === 0);
                     glyph.isWordEnd = (gi === lastDrawableIndex);
 
+                    // Baseline offset comes ONLY from the smooth, correlated
+                    // drift signals (line bias + slow BoundedDrift) - never
+                    // an independent per-glyph random term. A per-letter
+                    // gaussian here reads as a jagged sawtooth baseline
+                    // ("_/\_/\/\_"), which is exactly the mechanical-noise
+                    // look the humanizer is supposed to avoid; real
+                    // handwriting drifts slowly, it doesn't hop letter to
+                    // letter ("___/‾‾‾\___").
                     const rotationDeg = personality.slantDeg + lineSlopeDeg + wordSlantBias
-                        + glyphRng.gaussian() * 1.5 * clamp01(h.rotationVariation);
+                        + glyphRng.gaussian() * 0.6 * clamp01(h.rotationVariation);
                     const sizeMultX = wordScale * (1 + glyphRng.gaussian() * 0.04 * clamp01(h.sizeVariation));
                     const sizeMultY = wordScale * (1 + glyphRng.gaussian() * 0.03 * clamp01(h.sizeVariation));
                     const scaleX = unitScale * sizeMultX;
                     const scaleY = unitScale * sizeMultY;
-                    const baselineOffset = drifts.baselineDrift.at(t + gi * 0.15) + lineBaselineBias
-                        + glyphRng.gaussian() * 0.12 * clamp01(h.baselineDrift);
+                    const baselineOffset = drifts.baselineDrift.at(t + gi * 0.15) + lineBaselineBias;
 
                     glyph.x = wordStartX + localX;
                     glyph.transform = {

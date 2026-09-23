@@ -100,14 +100,30 @@ texte → layout → sélection des glyphes → humanisation hiérarchique
       → opérations plotter → G-code (et aperçu SVG / simulation, à partir des mêmes opérations)
 ```
 
+## Police par défaut
+
+`fonts/handwriting-default/font.js` est **généré** par `tools/convert-hershey.js` à partir des
+polices *Hershey Script* (lettrage mono-trait conçu dès les années 1960 pour les traceurs à
+plume, domaine public, via le portage MIT [techninja/hersheytextjs](https://github.com/techninja/hersheytextjs) —
+voir `tools/hershey-source/LICENSE-NOTICE.md`) plutôt que dessiné à la main : ces tracés sont
+éprouvés depuis des décennies sur du matériel de traçage réel, avec de vraies formes cursives
+liées (contrairement à un premier jet dessiné à la main dans ce projet, où des lettres comme `e`
+ou `l` étaient peu lisibles). Pour régénérer après une modification du convertisseur :
+
+```
+node tools/convert-hershey.js
+node tools/validate-font.js
+```
+
 ## Ajouter une police / des glyphes
 
 Une police est un simple fichier `.js` qui s'auto-enregistre dans `window.HandwriterFonts` (aucun
 `fetch`, donc compatible `file://`). Voir `fonts/handwriting-default/font.js` pour le format complet
 et `js/fonts/font-authoring-kit.js` pour les utilitaires de construction (lignes, courbes, arcs
-elliptiques). Le script `tools/validate-font.js` (nécessite Node, uniquement pour le développement,
-jamais chargé par l'application) permet de vérifier hors-ligne qu'un fichier de police ne contient
-pas de coordonnées aberrantes avant de l'essayer dans le navigateur :
+elliptiques) si vous préférez dessiner une police à la main plutôt que la générer. Le script
+`tools/validate-font.js` (nécessite Node, uniquement pour le développement, jamais chargé par
+l'application) permet de vérifier hors-ligne qu'un fichier de police ne contient pas de coordonnées
+aberrantes avant de l'essayer dans le navigateur :
 
 ```
 node tools/validate-font.js fonts/ma-police/font.js
@@ -116,9 +132,9 @@ node tools/validate-font.js fonts/ma-police/font.js
 ## Limitations connues (MVP)
 
 - Une seule police est fournie par défaut (`handwriting-default`), avec une couverture complète
-  (A-Z, a-z, 0-9, accents français, ponctuation courante) mais un nombre de variantes par lettre
-  volontairement limité (3 à 4 pour les lettres les plus fréquentes, 1 à 2 ailleurs) — l'architecture
-  est prête pour en accueillir davantage, y compris une police dérivée d'une vraie écriture manuscrite.
+  (A-Z, a-z, 0-9, accents français, ponctuation courante) et 2 à 4 variantes par lettre (2 issues
+  des polices Hershey Script sources, plus 1-2 dérivées pour `a`/`e`/`s`/`t`) — l'architecture est
+  prête pour en accueillir davantage, y compris une police dérivée d'une vraie écriture manuscrite.
 - L'import de SVG mono-trait externe n'est pas encore implémenté (prévu par l'architecture, non
   câblé dans l'interface).
 - La régénération complète du document est débouncée mais reste synchrone dans le thread principal ;

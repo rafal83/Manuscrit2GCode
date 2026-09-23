@@ -114,7 +114,11 @@ window.Handwriter = window.Handwriter || {};
                 margins: { top: 20, right: 18, bottom: 20, left: 18 },
 
                 fontSize: 5.2,
-                lineHeight: 9.5,
+                // The default font (Hershey Script) has tall, elegant
+                // ascenders/descenders (ascender=116.55, descender=-66.55,
+                // vs xHeight=50) - lineHeight must clear that full span
+                // (~19mm at fontSize 5.2mm) or lines visually collide.
+                lineHeight: 20,
                 letterSpacing: 0.4,
                 wordSpacing: 3.4,
 

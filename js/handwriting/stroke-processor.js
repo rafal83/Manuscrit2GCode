@@ -251,10 +251,15 @@ window.Handwriter = window.Handwriter || {};
 
             const dist = Geometry.distance(from, to);
             const mid = Geometry.lerp(from, to, 0.5);
-            const dip = Math.min(2.5, dist * 0.18) + rng.gaussian() * 0.3;
+            // Dip (and its random wobble) must stay PROPORTIONAL to the gap
+            // being bridged - a fixed mm offset looks like a subtle
+            // connecting stroke at large letter sizes but reads as a wild,
+            // disproportionate loop once real handwriting-scale gaps (often
+            // just 1-2 mm) are this small.
+            const dip = Geometry.clamp(dist * 0.15, 0.05, 1.2) + rng.gaussian() * Math.min(0.15, dist * 0.06);
             const control = { x: mid.x, y: mid.y - dip };
 
-            const steps = Geometry.clamp(Math.round(dist / 2.5), 3, 9);
+            const steps = Geometry.clamp(Math.round(dist / 1.8), 1, 7);
             const pts = [];
             const speedFrom = from.speed || config.speed.baseSpeed;
             const speedTo = to.speed || config.speed.baseSpeed;

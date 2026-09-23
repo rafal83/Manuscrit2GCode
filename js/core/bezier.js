@@ -67,8 +67,21 @@ window.Handwriter = window.Handwriter || {};
                 current = { x: seg.x, y: seg.y };
                 points.push({ x: current.x, y: current.y });
             } else if (seg.type === 'L') {
-                current = { x: seg.x, y: seg.y };
-                points.push({ x: current.x, y: current.y });
+                const p0 = current;
+                const p1 = { x: seg.x, y: seg.y };
+                // Straight segments still need interior points - otherwise
+                // humanization (jitter, pressure, speed) has nothing to act
+                // on along a long stroke and can only nudge its two
+                // endpoints, which reads as mechanically stiff. Fonts built
+                // from many short straight segments (e.g. Hershey-derived
+                // polyline glyphs) are exactly the case this matters for.
+                const len = NS.Geometry.distance(p0, p1);
+                const n = NS.Geometry.clamp(Math.round(len / unitsPerSample), 1, maxSamples);
+                for (let i = 1; i <= n; i++) {
+                    const t = i / n;
+                    points.push({ x: p0.x + (p1.x - p0.x) * t, y: p0.y + (p1.y - p0.y) * t });
+                }
+                current = p1;
             } else if (seg.type === 'Q') {
                 const p0 = current;
                 const p1 = { x: seg.x1, y: seg.y1 };

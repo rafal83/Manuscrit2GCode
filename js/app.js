@@ -49,6 +49,7 @@
         });
 
         state.viewMode = 'result';
+        initPanning();
         generate();
     }
 
@@ -253,6 +254,76 @@
         const cy = vb.y + vb.h / 2;
         state.viewBox = { x: cx - newW / 2, y: cy - newH / 2, w: newW, h: newH };
         applyViewBox();
+    }
+
+    // Click-and-drag panning: zooming via viewBox never changes the <svg>
+    // element's own on-screen size, so the viewport's CSS overflow:auto
+    // never actually has anything to scroll - once zoomed in, the top/
+    // bottom of the sheet is simply outside the current viewBox with no
+    // way to reach it. Dragging shifts viewBox.x/y directly instead.
+    function initPanning() {
+        const svg = $('preview-svg');
+        let dragging = false;
+        let startClientX = 0, startClientY = 0;
+        let startViewBox = null;
+
+        svg.addEventListener('pointerdown', (e) => {
+            if (!state.viewBox) state.viewBox = defaultViewBox();
+            dragging = true;
+            startClientX = e.clientX;
+            startClientY = e.clientY;
+            startViewBox = Object.assign({}, state.viewBox);
+            svg.setPointerCapture(e.pointerId);
+            svg.classList.add('hw-panning');
+        });
+
+        svg.addEventListener('pointermove', (e) => {
+            if (!dragging) return;
+            const rect = svg.getBoundingClientRect();
+            if (rect.width === 0) return;
+            const unitsPerPx = startViewBox.w / rect.width;
+            const dx = (e.clientX - startClientX) * unitsPerPx;
+            const dy = (e.clientY - startClientY) * unitsPerPx;
+            state.viewBox = {
+                x: startViewBox.x - dx,
+                y: startViewBox.y - dy,
+                w: startViewBox.w,
+                h: startViewBox.h
+            };
+            applyViewBox();
+        });
+
+        function endDrag(e) {
+            if (!dragging) return;
+            dragging = false;
+            svg.classList.remove('hw-panning');
+            try { svg.releasePointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+        }
+        svg.addEventListener('pointerup', endDrag);
+        svg.addEventListener('pointercancel', endDrag);
+
+        // Wheel = zoom in/out centered on the cursor, so pan+zoom compose naturally.
+        svg.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            if (!state.viewBox) state.viewBox = defaultViewBox();
+            const rect = svg.getBoundingClientRect();
+            if (rect.width === 0 || rect.height === 0) return;
+            const vb = state.viewBox;
+            const px = (e.clientX - rect.left) / rect.width;
+            const py = (e.clientY - rect.top) / rect.height;
+            const cursorX = vb.x + px * vb.w;
+            const cursorY = vb.y + py * vb.h;
+            const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+            const newW = NS.Geometry.clamp(vb.w / factor, 15, state.config.machine.bedWidth * 4);
+            const newH = vb.h * (newW / vb.w);
+            state.viewBox = {
+                x: cursorX - px * newW,
+                y: cursorY - py * newH,
+                w: newW,
+                h: newH
+            };
+            applyViewBox();
+        }, { passive: false });
     }
 
     // -----------------------------------------------------------------
