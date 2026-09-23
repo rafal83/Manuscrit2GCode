@@ -267,10 +267,21 @@ function subpathsToStrokes(subpaths) {
         }));
 }
 
-/** anchor eligibility: only near-baseline points are safe cursive join points (see font.js history for why). */
+/**
+ * Anchor eligibility window. Measured empirically across Script1's actual
+ * lowercase letters: its cursive join convention sits at roughly MID
+ * x-height (y ~ 28-33 out of xHeight=50 - e.g. n/m/u/l/r/s/h/k/v/y/z/b/f/p
+ * all start AND end almost exactly at y=27.82), not near the baseline as
+ * originally assumed here. A tight [-5,15] baseline-only window rejected
+ * nearly every legitimate join point (only 1 of 26 lowercase letters had
+ * both anchors), which is why the generated G-code was lifting the pen
+ * far more than real connected cursive would. [8,38] comfortably covers
+ * that mid-height convention while still excluding genuine outliers (a
+ * dot at y=77, an ascender top at y=72, a bowl top at y=50).
+ */
 function anchorFor(point) {
     if (!point) return null;
-    return (point.y >= -5 && point.y <= 15) ? { x: point.x, y: point.y } : null;
+    return (point.y >= 8 && point.y <= 38) ? { x: point.x, y: point.y } : null;
 }
 
 function buildVariant(id, advance, subpaths, opts) {
