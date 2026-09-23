@@ -4,7 +4,14 @@ Application **100 % frontend**, sans build ni dépendance, qui transforme un tex
 d'écriture manuscrite pour plotter à stylo — pensée pour une **Elegoo Neptune 4 Plus sous Klipper**
 équipée d'un porte-stylo, mais adaptable à n'importe quel plotter via le profil machine.
 
-## Installation
+## 🌐 Utiliser en ligne
+
+**[rafal83.github.io/Manuscrit2GCode](https://rafal83.github.io/Manuscrit2GCode/)** — aucune
+installation, ouvre directement dans le navigateur (hébergé par GitHub Pages, mêmes fichiers
+statiques que ci-dessous). Tout le traitement reste local à votre machine : rien de ce que vous
+saisissez n'est envoyé où que ce soit.
+
+## Installation locale
 
 1. Téléchargez / copiez le dossier complet (`index.html`, `css/`, `js/`, `fonts/`, `assets/`).
 2. Double-cliquez sur `index.html`.
@@ -14,7 +21,8 @@ L'application fonctionne directement depuis une URL `file:///...`, y compris sur
 Firefox. Aucun appel réseau, aucun CDN, aucune dépendance externe : tout le code (moteur
 d'écriture, police, interface) est embarqué dans le dossier.
 
-Pour lancer la suite de tests intégrée : ouvrez `tests.html` de la même façon.
+Pour lancer la suite de tests intégrée : ouvrez `tests.html` de la même façon (ou
+[tests en ligne](https://rafal83.github.io/Manuscrit2GCode/tests.html)).
 
 ## Utilisation
 
