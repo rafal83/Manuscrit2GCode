@@ -20,10 +20,15 @@ window.Handwriter = window.Handwriter || {};
         maxX: 320,
         maxY: 320,
         minZ: 0,
-        maxZ: 15,
-        penUpZ: 5.0,
-        penDownZ: 1.0,
-        minPenZ: 0.2,
+        maxZ: 25,
+        // Calibrated for this specific machine's pen holder (spring-loaded
+        // mount): tip touches the paper at Z=17, travel clearance at Z=22.
+        // minPenZ=15 is a conservative safety floor (2mm below penDownZ) -
+        // verify it against the mount's actual mechanical spring travel
+        // before relying on it, it wasn't itself measured.
+        penUpZ: 22,
+        penDownZ: 17,
+        minPenZ: 15,
         travelSpeed: 6000,
         drawSpeed: 1800,
         zSpeed: 900,
@@ -65,12 +70,18 @@ window.Handwriter = window.Handwriter || {};
                 return Object.assign({ valid: true, violations: [] }, bounds);
             }
 
+            // The pen-down safety floor is minPenZ (how far the spring-loaded
+            // tip is allowed to press into the paper), NOT the machine's raw
+            // minZ travel limit - those are different things, and minZ=0 is
+            // usually far too lenient to catch a real over-pressure case.
+            const zFloor = machine.minPenZ !== undefined ? machine.minPenZ : machine.minZ;
+
             const violations = [];
             if (bounds.minX < machine.minX) violations.push('X minimum demandé : ' + bounds.minX.toFixed(1) + ' mm < limite machine ' + machine.minX + ' mm');
             if (bounds.maxX > machine.maxX) violations.push('X maximum demandé : ' + bounds.maxX.toFixed(1) + ' mm > limite machine ' + machine.maxX + ' mm');
             if (bounds.minY < machine.minY) violations.push('Y minimum demandé : ' + bounds.minY.toFixed(1) + ' mm < limite machine ' + machine.minY + ' mm');
             if (bounds.maxY > machine.maxY) violations.push('Y maximum demandé : ' + bounds.maxY.toFixed(1) + ' mm > limite machine ' + machine.maxY + ' mm');
-            if (bounds.minZ < machine.minZ) violations.push('Z minimum demandé : ' + bounds.minZ.toFixed(2) + ' mm < limite machine ' + machine.minZ + ' mm');
+            if (bounds.minZ < zFloor) violations.push('Z minimum demandé : ' + bounds.minZ.toFixed(2) + ' mm < limite de sécurité stylo (minPenZ) ' + zFloor + ' mm');
             if (bounds.maxZ > machine.maxZ) violations.push('Z maximum demandé : ' + bounds.maxZ.toFixed(2) + ' mm > limite machine ' + machine.maxZ + ' mm');
 
             return Object.assign({ valid: violations.length === 0, violations: violations }, bounds);
